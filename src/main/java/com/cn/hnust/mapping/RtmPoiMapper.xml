@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.dao.IRtmPoiDao" >
+
+  <resultMap id="BaseResultMap" type="com.cn.hnust.pojo.RtmPoi" ></resultMap>
+
+  <sql id="Base_Column_List" >
+    dt,vid,tripid,match_type,poi_id,poi_type,confidence
+  </sql>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from rtm_poi
+  </select>
+
+</mapper>

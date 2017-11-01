@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Window Layout - jQuery EasyUI Demo</title>
+	<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="../demo.css">
+	<script type="text/javascript" src="../../jquery.min.js"></script>
+	<script type="text/javascript" src="../../jquery.easyui.min.js"></script>
+	<script>
+		$(document).ready(function(){
+
+			$('#w').window({
+				onBeforeClose:function(){
+					alert(111);
+				}
+			});
+		});
+	</script>
+</head>
+<body>
+	<h2>Window Layout</h2>
+	<p>Using layout on window.</p>
+	<div style="margin:20px 0;">
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#w').window('open')">Open</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#w').window().show();">Op2en</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#w').window('close')">Close</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#my-w-confirm-divmsg').html('22')">dd</a>
+	</div>
+	<div id="w" class="easyui-window" title="Window Layout" data-options="iconCls:'icon-help',closed:true,collapsible:false,minimizable:false,closable:true,resizable:false,maximizable:false" style="width:350px;height:150px;padding:5px;">
+		<div class="easyui-layout" data-options="fit:true">
+			<div id="my-w-confirm-divmsg" style="width:100%;text-align: center;height:calc(100% - 35px);line-height: 30px;font-size:14px;">
+				是否确认您的操作！？
+			</div>
+			<div data-options="region:'south',border:false" style="text-align:right;padding:5px 0 0;">
+				<a class="easyui-linkbutton" data-options="iconCls:'icon-ok'" href="javascript:void(0)" onclick="javascript:alert('ok')" style="width:80px">确定</a>
+				<a class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" href="javascript:void(0)" onclick="javascript:$('#w').window().hide();" style="width:80px">取消</a>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

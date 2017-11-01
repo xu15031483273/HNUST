@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.dao.IRtmTripDao" >
+
+  <resultMap id="BaseResultMap" type="com.cn.hnust.pojo.RtmTrip" >
+  </resultMap>
+  <resultMap id="getDateAndOnceAvgerDistanceHsahMap" type="com.cn.hnust.pojo.DateAndOnceAvgerDistance" >
+  </resultMap>
+
+  <resultMap id="DistanceTripDistHsahMap" type="com.cn.hnust.pojo.DistanceTripDist" >
+  </resultMap>
+
+  <resultMap id="DaySumVidHsahMap" type="com.cn.hnust.pojo.DaySumVid" >
+  </resultMap>
+
+  <resultMap id="DisAvgConsumeHsahMap" type="com.cn.hnust.pojo.DisAvgConsume" >
+  </resultMap>
+  <resultMap id="TimeTripTime" type="com.cn.hnust.pojo.TimeTripTime" >
+  </resultMap>
+  <resultMap id="SpeedWithTriplen" type="com.cn.hnust.pojo.SpeedWithTriplen" >
+  </resultMap>
+  <resultMap id="DateInfo" type="com.cn.hnust.pojo.DateInfo" >
+  </resultMap>
+  <resultMap id="intensionTripNum" type="com.cn.hnust.pojo.IntensionTripNum" >
+ </resultMap>
+  <!--<resultMap id="DynamicAction" type="com.cn.hnust.pojo.DynamicAction" >-->
+  <!--</resultMap>-->
+  <!--<resultMap id="intensionTripRate" type="com.cn.hnust.pojo.IntensionTripRate" >-->
+  <!--</resultMap>-->
+  <resultMap id="stopCarType" type="com.cn.hnust.pojo.StopCarType" >
+  </resultMap>
+
+  <sql id="Base_Column_List" >
+    vid,tripid,trip_type,dt,record_count,distance,elapse,speed,speed_max,start_time,start_x,start_y,end_time,end_x,end_y
+  </sql>
+  <sql id="beginDateAndEndDate">
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+    </if>
+  </sql>
+  <sql id="weekAndwork">
+    <if test="mode!=null and mode!=''">
+      and t.dt in (SELECT h.dt from st_date h WHERE h.dateinfo=#{mode} )
+    </if>
+  </sql>
+  <sql id="weight">
+  <if test="weight=='weight_ext'">
+    , d.weight_ext
+  </if>
+  <if test="weight=='weight_org'">
+    , d.weight_org
+  </if>
+</sql>
+  <sql id="vtypeCar">
+    <if test="vtype!=null and vtype!=''">
+      and d.vtype=${vtype}
+    </if>
+  </sql>
+  <sql id="xzqhisall">
+    <if test="part!='100'.toString() ">
+      and st_contains(z.geom, t.startup_geom)
+      and z.gid in(${part})
+    </if>
+  </sql>
+  <sql id="lyr_wgs_xzqh_17">
+    <if test="part!='100'.toString() ">
+      ,lyr_wgs_xzqh_17 z
+    </if>
+  </sql>
+  <sql id="xzqh_lyr_wgs_xzqh_17">
+    <if test="startpart!='100'.toString() ">
+      and z.gid in (${startpart})
+      and st_contains(z.geom, t.startup_geom)
+      AND T .startup_time IS NOT NULL
+    </if>
+    <if test="endpart!='100'.toString() ">
+      and x.gid in (${endpart})
+      and st_contains(x.geom, t.shutdown_geom)
+      AND T .shutdown_geom IS NOT NULL
+    </if>
+    <if test="workpart!='100'.toString() ">
+      and c.gid in (${workpart})
+      and st_contains(c.geom, d.work_geom)
+      and d.work_geom is not null
+    </if>
+    <if test="homepart!='100'.toString() ">
+      and v.gid in (${homepart})
+      and st_contains(v.geom,d.home_geom)
+      and d.home_geom is not null
+    </if>
+  </sql>
+  <sql id="lyr_wgs_xzqh_17_four">
+    <if test="startpart!='100'.toString() ">
+      ,lyr_wgs_xzqh_17 z
+    </if>
+    <if test="endpart!='100'.toString() ">
+      ,lyr_wgs_xzqh_17 x
+    </if>
+    <if test="workpart!='100'.toString() ">
+      ,lyr_wgs_xzqh_17 c
+    </if>
+    <if test="homepart!='100'.toString() ">
+      ,lyr_wgs_xzqh_17 v
+    </if>
+  </sql>
+  <sql id="purpose">
+    <if test="purpose!='0'.toString() ">
+      and ST_Distance(t.shutdown_geom,t.startup_geom) <![CDATA[ <]]> ${distance}
+    </if>
+  </sql>
+
+
+  <resultMap id="selectQyhfStartup" type="com.cn.hnust.pojo.SelectQyhfStartup" >
+  </resultMap>
+
+  <select id="selectQyhfStartup" resultMap="selectQyhfStartup" parameterType="map">
+    SELECT  d.gid,d.name,t.startup_time
+    FROM rtm_trip as t INNER JOIN lyr_wgs_xzqh_13 as d
+    ON ( st_contains( d.geom, t.startup_geom))
+    WHERE 1=1
+    and t.triptype=1
+    <include refid="beginDateAndEndDate" />
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.startup_time >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.startup_time <=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    and t.startup_time is not null
+  </select>
+
+
+  <select id="selectAll" resultMap="BaseResultMap"  >
+    select
+    <include refid="Base_Column_List" />
+    from rtm_trip
+  </select>
+  <!--是否是工作日-->
+  <select id="getDateInfo" resultMap="DateInfo">
+    SELECT
+    t.dt,t."dayOfWeek",t.restriction,t.dateinfo,t.datekind,t."weekOfYear",t."monthOfYear",t."quarterOfYear"
+    FROM st_date t WHERE 1=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <!-- 节假日 -->
+    <if test="mode!=null and mode!=''">
+      AND t.dateinfo=#{mode}
+    </if>
+    ORDER BY t.dt
+  </select>
+  <!--权重-->
+  <select id="getWeight" resultMap="DateInfo">
+    SELECT
+    t.dt,t."dayOfWeek",t.restriction,t.dateinfo,t.datekind,t."weekOfYear",t."monthOfYear",t."quarterOfYear"
+    FROM st_date t WHERE 1=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <!-- 节假日 -->
+    <if test="mode!=null and mode!=''">
+      AND t.dateinfo=#{mode}
+    </if>
+    ORDER BY t.dt
+  </select>
+
+  <!--出行距离-->
+  <select id="getDateAndOnceAvgerDistance" resultMap="getDateAndOnceAvgerDistanceHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+    t.dt date, SUM(t.distance*d.weight_ext) dissum, count(DISTINCT t.vid)*d.weight_ext vidsum, count(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt date, SUM(t.distance*d.weight_org) dissum, count(DISTINCT t.vid)*d.weight_org vidsum, count(*)*d.weight_org trip_count
+    </if>
+    from rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+
+  <select id="getDistanceTripDist" resultMap="DistanceTripDistHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      FLOOR(t.distance/1000) travel_distance, COUNT(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      FLOOR(t.distance/1000) travel_distance, COUNT(*)*d.weight_org trip_count
+    </if>
+    FROM rtm_trip t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE t.triptype=1 AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY travel_distance
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+    ORDER BY travel_distance
+  </select>
+
+  <select id="getDaySumTripDistance" resultMap="DaySumVidHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt dateofday, t.vid vid, floor(SUM(t.distance)/5000)  dissum
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt dateofday, t.vid vid, floor(SUM(t.distance)/5000)  dissum
+    </if>
+    from rtm_trip t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt,t.vid
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+
+  <select id="getDisAvgConsume" resultMap="DisAvgConsumeHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      EXTRACT( HOUR FROM t.startup_time ) hourofday, SUM (t.distance)*d.weight_ext distum,count(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      EXTRACT( HOUR FROM t.startup_time ) hourofday, SUM (t.distance)*d.weight_org distum,count(*)*d.weight_org trip_count
+    </if>
+    FROM rtm_trip t  ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE t.triptype=1 and t.startup_time is not null AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    <!--车辆类型 -->
+    GROUP BY hourofday
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+    ORDER BY hourofday
+  </select>
+  <!--出行时耗-->
+  <select id="getTimeTripTime" resultMap="TimeTripTime">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt date, SUM(t.elapse*d.weight_ext) timsum, count(DISTINCT t.vid)*d.weight_ext vidsum, count(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt date, SUM(t.elapse*d.weight_org) dissum, count(DISTINCT t.vid)*d.weight_org vidsum, count(*)*d.weight_org trip_count
+    </if>
+    from rtm_trip  t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+
+  <select id="getTimeConsumeDist" resultMap="DistanceTripDistHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      FLOOR(t.elapse/300) travel_distance, COUNT(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      FLOOR(t.elapse/300) travel_distance, COUNT(*)*d.weight_org trip_count
+    </if>
+
+    FROM rtm_trip t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE t.triptype=1 AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY travel_distance
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+    ORDER BY travel_distance
+  </select>
+
+  <select id="getAvgCarConsume" resultMap="DaySumVidHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt dateofday, t.vid vid, floor(SUM(t.elapse)/900)  dissum
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt dateofday, t.vid vid, floor(SUM(t.elapse)/900)  dissum
+    </if>
+
+    from rtm_trip t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+
+    GROUP BY t.dt,t.vid
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+
+  <select id="timeAvgConsume" resultMap="DisAvgConsumeHsahMap">
+    SELECT
+    <if test="weight=='weight_ext'">
+      EXTRACT( HOUR FROM t.startup_time ) hourofday, sum(t.elapse)*d.weight_ext distum,count(*)*d.weight_ext trip_count
+    </if>
+    <if test="weight=='weight_org'">
+      EXTRACT( HOUR FROM t.startup_time ) hourofday, SUM (t.elapse)*d.weight_org distum,count(*)*d.weight_org trip_count
+    </if>
+    FROM rtm_trip t ,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE t.triptype=1 and t.startup_time is not null AND inwuhan=1
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY hourofday
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+    ORDER BY hourofday
+  </select>
+  <!--出行距离和速度-->
+  <select id="speedWithTriplen" resultMap="SpeedWithTriplen" parameterType="map" >
+    SELECT
+    speed, distance
+    FROM rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE 1=1
+    and t.triptype=1 AND inwuhan=1 and t.vid = d.vid
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    <!--车辆类型 -->
+    ORDER BY speed
+  </select>
+  <!--出行时耗和速度-->
+  <select id="speedWithTripTime" resultMap="SpeedWithTriplen" parameterType="map" >
+    SELECT
+    speed,elapse distance
+    FROM rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17_four" />
+    WHERE 1=1
+    and t.triptype=1 AND inwuhan=1 and t.vid = d.vid
+    <include refid="xzqh_lyr_wgs_xzqh_17" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    <include refid="purpose" />
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo='${mode}'
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date('${sdate}', 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date('${edate}', 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    <!--车辆类型 -->
+    ORDER BY speed
+  </select>
+
+  <!--出行强度 车均日总出行量-->
+  <select id="intensionTripNum" resultMap="intensionTripNum" parameterType="map">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt dates,count(DISTINCT t.vid)*d.weight_ext vidnum,count(*)*d.weight_ext tripnum
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt dates,count(DISTINCT t.vid)*d.weight_org vidnum,count(*)*d.weight_org tripnum
+    </if>
+    from rtm_trip t INNER JOIN
+    (
+    SELECT VID,weight_ext,weight_org FROM rtm_vehicle
+    WHERE
+    <if test="vtype!=null and vtype!=''">
+      ''||vtype=#{vtype}
+    </if>
+    ) d
+    ON ( t.vid = d.vid )
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo=#{mode}
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date(#{edate}, 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+  <!--出行强度 车均出行次数-->
+  <select id="intensionTripNumDay" resultMap="intensionTripNum" parameterType="map">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt dates,t.vid vidnum,count(*) tripnum
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt dates,t.vid vidnum,count(*) tripnum
+    </if>
+    from rtm_trip t INNER JOIN
+    (
+    SELECT VID,weight_ext,weight_org FROM rtm_vehicle
+    WHERE
+    <if test="vtype!=null and vtype!=''">
+      ''||vtype=#{vtype}
+    </if>
+    ) d
+    ON ( t.vid = d.vid )
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo=#{mode}
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date(#{edate}, 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt,t.vid
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+  <!--出行强度 出车率-->
+  <select id="intensionTripRate" resultMap="intensionTripNum" parameterType="map">
+    SELECT
+    <if test="weight=='weight_ext'">
+      t.dt dates,count(DISTINCT t.vid)*d.weight_ext vidnum
+    </if>
+    <if test="weight=='weight_org'">
+      t.dt dates,count(DISTINCT t.vid)*d.weight_org vidnum
+    </if>
+    from rtm_trip t INNER JOIN
+    (
+    SELECT VID,weight_ext,weight_org FROM rtm_vehicle
+    WHERE
+    <if test="vtype!=null and vtype!=''">
+      ''||vtype=#{vtype}
+    </if>
+    ) d
+    ON ( t.vid = d.vid )
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo=#{mode}
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date(#{edate}, 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+  </select>
+  <!--出行强度 出车率-->
+  <select id="intensionTripRateMax" resultMap="intensionTripNum" parameterType="map">
+    SELECT max(f.vidnum) vidnum from (SELECT
+    <if test="weight=='weight_ext'">
+      count(DISTINCT t.vid)*d.weight_ext vidnum
+    </if>
+    <if test="weight=='weight_org'">
+      count(DISTINCT t.vid)*d.weight_org vidnum
+    </if>
+    from rtm_trip t INNER JOIN
+    (
+    SELECT VID,weight_ext,weight_org FROM rtm_vehicle
+    WHERE
+    <if test="vtype!=null and vtype!=''">
+      ''||vtype=#{vtype}
+    </if>
+    ) d
+    ON ( t.vid = d.vid )
+    where t.triptype=1 AND t.vid=d.vid AND inwuhan=1
+    <!-- 开始时间 -->
+    <if test="sdate!=null and sdate!=''">
+      <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+    </if>
+    <!--结束时间 -->
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt<=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <if test="mode!=null and mode!=''">
+      AND t.dt in (SELECT x.dt FROM st_date x WHERE x.dateinfo=#{mode}
+      <if test="sdate!=null and sdate!=''">
+        <![CDATA[   and t.dt >=  to_date(#{sdate}, 'yyyymmdd')   ]]>
+      </if>
+      <!--结束时间 -->
+      <if test="edate!=null and edate!=''">
+        <![CDATA[   and t.dt <=  to_date(#{edate}, 'yyyymmdd')   ]]>
+      </if>
+      )
+    </if>
+    GROUP BY t.dt
+    <if test="weight=='weight_ext'">
+      , d.weight_ext
+    </if>
+    <if test="weight=='weight_org'">
+      , d.weight_org
+    </if>
+    ) f
+  </select>
+
+
+  <!--停车-->
+  <resultMap id="DynamicAction" type="com.cn.hnust.pojo.DynamicAction" >
+  </resultMap>
+  <resultMap id="DynamicActionTime" type="com.cn.hnust.pojo.DynamicActionTime" >
+  </resultMap>
+  <!--停车动态-->
+  <select id="dynamicActionDao" resultMap="DynamicAction" parameterType="map">
+    SELECT EXTRACT( HOUR FROM t.shutdown_time) shutdown_hour,t.shutdown_x,t.shutdown_y,t.triptype
+    from rtm_trip t,rtm_vehicle d
+    where t.triptype=2 and t.vid=d.vid
+    <if test="edate!=null and edate!=''">
+      <![CDATA[   and t.dt=  to_date(#{edate}, 'yyyymmdd')   ]]>
+    </if>
+    <if test="vtype!=null and vtype!=''">
+      and d.vtype=${vtype}
+    </if>
+  </select>
+
+
+
+  <select id="dynamicActionDaoTime" resultMap="DynamicActionTime" parameterType="map">
+    SELECT  EXTRACT( HOUR FROM (t.last_time-t.first_time)) shutdown_hour,
+    <if test="weight=='weight_ext'">
+      COUNT(*)*d.weight_ext countall
+    </if>
+    <if test="weight=='weight_org'">
+      COUNT(*)*d.weight_org countall
+    </if>
+    from rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17" />
+    where t.triptype=2 AND t.vid=d.vid
+    <include refid="xzqhisall" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    GROUP BY shutdown_hour
+    <include refid="weight" />
+    ORDER BY shutdown_hour
+  </select>
+
+  <select id="dayAvgStopCar" resultMap="DynamicActionTime" parameterType="map">
+    SELECT  EXTRACT (HOUR FROM T.shutdown_time) shutdown_hour,
+    <if test="weight=='weight_ext'">
+      count(*)*d.weight_ext countall
+    </if>
+    <if test="weight=='weight_org'">
+      COUNT(*)*d.weight_org countall
+    </if>
+    from rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17" />
+    where t.triptype=2 AND t.vid=d.vid
+    <include refid="xzqhisall" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    <include refid="vtypeCar" />
+    and shutdown_time is not null
+    GROUP BY shutdown_hour
+    <include refid="weight" />
+    ORDER BY shutdown_hour
+  </select>
+
+  <select id="stopCarType" resultMap="stopCarType" parameterType="map">
+    SELECT  EXTRACT( HOUR FROM (t.last_time-t.first_time)) shutdown_hour,EXTRACT( HOUR FROM (t.first_time)) downhour,
+    <if test="weight=='weight_ext'">
+      COUNT(*)*d.weight_ext countall
+    </if>
+    <if test="weight=='weight_org'">
+      COUNT(*)*d.weight_org countall
+    </if>
+    from rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17" />
+    where t.triptype=2 AND t.vid=d.vid
+    <include refid="xzqhisall" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    GROUP BY shutdown_hour,downhour
+    <include refid="weight" />
+    ORDER BY shutdown_hour
+  </select>
+
+  <!--停车强度-->
+  <resultMap id="StopCarTypePart" type="com.cn.hnust.pojo.StopCarTypePart" ></resultMap>
+  <select id="StopIntension" resultMap="StopCarTypePart" parameterType="map">
+    SELECT
+    <if test="part!='100'.toString() ">
+      z.gid part,z.name,
+    </if>
+    <if test="timetype=='hour'">
+      EXTRACT( hour FROM (shutdown_time)) datetime,
+    </if>
+    <if test="timetype=='day'">
+      dt datetime,
+    </if>
+    <if test="timetype=='month'">
+      to_char(dt,'YYYY-MM') datetime,
+    </if>
+    <if test="timetype=='DOW'">
+      dt datetime,
+    </if>
+    <if test="weight=='weight_ext'">
+      COUNT(*)*d.weight_ext countall
+    </if>
+    <if test="weight=='weight_org'">
+      COUNT(*)*d.weight_org countall
+    </if>
+    from rtm_trip t,rtm_vehicle d
+    <include refid="lyr_wgs_xzqh_17" />
+    where t.triptype=2 AND t.vid=d.vid
+    <include refid="xzqhisall" />
+    <include refid="beginDateAndEndDate" />
+    <include refid="weekAndwork" />
+    GROUP BY datetime
+    <if test="part!='100'.toString() ">
+      ,z.gid,z.name
+    </if>
+    <include refid="weight" />
+    ORDER BY
+    <if test="part!='100'.toString() ">
+      z.gid,
+    </if>
+    datetime
+  </select>
+  <!--停车强度-->
+</mapper>

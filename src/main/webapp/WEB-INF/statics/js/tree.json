@@ -1,0 +1,69 @@
+[
+  {
+    "children": [
+      {
+        "id": "link05m",
+        "name": "路网路段5分钟速度表",
+        "text": "路网路段5分钟速度表(link05m)"
+      },
+      {
+        "id": "link15m",
+        "name": "路网路段5分钟速度表",
+        "text": "15分钟路段速度表(link15m)"
+      },
+      {
+        "id": "speed_mainroad",
+        "name": "路网路段5分钟速度表",
+        "text": "主要道路速度表(speed_mainroad)"
+      },
+      {
+        "id": "total15m",
+        "name": "路网路段5分钟速度表",
+        "text": "15分钟区域指数表(total15m)"
+      },
+      {
+        "id": "area_index_ext",
+        "name": "路网路段5分钟速度表",
+        "text": "区域指数(扩展版)(area_index_ext)"
+      },
+      {
+        "id": "path05m",
+        "name": "5分钟道路速度",
+        "text": "5分钟道路速度(path05m)"
+      },
+      {
+        "id": "path15m",
+        "name": "15分钟道路速度",
+        "text": "15分钟道路速度(path15m)"
+      },
+      {
+        "id": "pathhot",
+        "name": "高峰主要道路速度",
+        "text": "高峰主要道路速度(pathhot)"
+      },
+      {
+        "id": "k4",
+        "name": "常发拥堵路段表",
+        "text": "常发拥堵路段表(k4)"
+      },
+      {
+        "id": "k1day",
+        "name": "区域高峰平均指数",
+        "text": "区域高峰平均指数(k2day)"
+      },
+      {
+        "id": "k2day",
+        "name": "区域高峰日平均拥堵比例",
+        "text": "区域高峰日平均拥堵比例(k2day)"
+      },
+      {
+        "id": "st_area",
+        "name": "st_area",
+        "text": "st_area"
+      }
+    ],
+    "iconCls": "icon-save",
+    "id": 1,
+    "text": "新数据源"
+  }
+]

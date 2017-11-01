@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.dao.BlowoffDao" >
+
+  <resultMap id="BaseResultMap" type="com.cn.hnust.pojo.Blowoff" ></resultMap>
+
+  <resultMap id="BaseResultMapJson" type="com.cn.hnust.pojo.MapJson" ></resultMap>
+
+  <sql id="Base_Column_List" >
+    dt,vid,tripid,match_type,poi_id,poi_type,confidence
+  </sql>
+<!--//排放-->
+  <select id="selectBlowoff" resultMap="BaseResultMap" >
+    SELECT first_time,EXTRACT( hour FROM (first_time)) hours,EXTRACT( MINUTE FROM (first_time)) minutes from rtm_trip t where
+    t.dt <![CDATA[ > ]]> (SELECT current_timestamp - interval '15 day')
+    and t.dt <![CDATA[ < ]]> (SELECT current_timestamp - interval '14 day')
+    and t.triptype=1
+    ORDER BY first_time
+  </select>
+
+  <select id="selectBlowoffMap" resultMap="BaseResultMapJson" >
+    SELECT t.dt days,EXTRACT( hour FROM (first_time)) hours,first_x lon,first_y lat	 from rtm_trip t where
+    t.dt <![CDATA[ > ]]> (SELECT current_timestamp - interval '15 day')
+    and t.dt <![CDATA[ < ]]> (SELECT current_timestamp - interval '14 day')
+--     and t.triptype=99
+    ORDER BY days
+  </select>
+</mapper>
